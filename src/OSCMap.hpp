@@ -191,6 +191,12 @@ public:
     }
     
     void inputOSC( long len, char * ptr );
+
+    inline void addMessage(const char* address)
+    {
+        if (!address_lookup.count(address))
+            address_lookup[address] = std::make_unique<OSCAtomVector>();
+    }
     
     template <typename... Ts>
     void addMessage (const std::string& address, Ts&&... args)
