@@ -27,6 +27,7 @@ int main(int argc, const char * argv[]) {
     bndl2.addMessage("/self_sub", bndl2);
     bndl.addMessage("/foo", bndl2);
     
+    
     bndl2.print();
    // cout << bndl["/foo"].get<string>() << endl;
   
@@ -70,6 +71,7 @@ int main(int argc, const char * argv[]) {
     
     OSCMap deserialized( serialString.length(), serialString.data() );
     
+   
   //  deserialized.print();
     return 0;
 }

@@ -214,15 +214,15 @@ public:
         (void)expand{0, ((void)address_lookup[address]->appendValue( std::forward<Ts>(args) ), 0) ... };
     }
 
-    OSCAtomVector& operator[](std::string& addr) { return *address_lookup[addr]; }
-    OSCAtomVector& operator[](const char * addr) { return *address_lookup[addr]; }
+    OSCAtomVector* operator[](std::string& addr) { return address_lookup[addr].get(); }
+    OSCAtomVector* operator[](const char * addr) { return address_lookup[addr].get(); }
     
     inline bool addressExists(const char * address) {
         return address_lookup.count(address);
     }
        
-    inline OSCAtomVector& getMessage(const char * address) {
-       return *address_lookup[address];
+    inline OSCAtomVector* getMessage(const char * address) {
+       return address_lookup[address].get();
     }
     
     std::string getSerializedString() const;
