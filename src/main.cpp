@@ -17,17 +17,15 @@ int main(int argc, const char * argv[]) {
     bndl.addMessage("/string", "hello osc!");
     
     // adding a message with a list
-    bndl.addMessage("/bar", "hei", 2, 3, 4 );
+    bndl.addMessage("/bar", "hei", 2, (double)3, (int64_t)4 );
     
     // creating an empty message
     bndl2.addMessage("/accumuate");
     
-    
+    // appending values to make a list
     for( int i = 0; i < 10; i++ )
     {
-        // appending values to make a list iterably
-        bndl2["/accumuate"]->appendValue(i);
-        // note that the messages are pointers
+        bndl2["/accumuate"]->appendValue(i); // note that the messages are pointers
     }
     
     // adding a subbbundle
@@ -36,15 +34,27 @@ int main(int argc, const char * argv[]) {
     // print
     bndl.print();
     
-    //
+    
+    // the get function gets an OSC atom and casts to the requested type
     cout << "this is a float " << bndl["/float"]->get<float>() << endl;
+    
+    cout << "the type tages of bar are:";
+    
+    vector<char> typetags = bndl["/bar"]->typetags();
+    
+    for( auto& it : typetags )
+        cout << "\t" << it;
+    
+    cout << "\n\n";
+
     
     // by default get<>() returns the first element
     cout << "this is the first element of /bar " << bndl["/bar"]->get<string>() << endl;
     
-    cout << "this is the second element /bar " << bndl["/bar"]->get<string>(1) << endl;
+    cout << "the length of /bar is : " << bndl["/bar"]->size() << endl;
 
-    cout << bndl["/float"]->size() << endl;
+    // optional argument to get() is the list index (note, it doesn't check if it's valid or not)
+    cout << "this is the second element /bar " << bndl["/bar"]->get<string>(1) << endl;
     
     // this will crash since we ask for an element that is outside the list size
     // cout << "this is the second element /float " << bndl["/float"]->get<string>(1) << endl;
