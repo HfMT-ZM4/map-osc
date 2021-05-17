@@ -6,6 +6,10 @@
 #include <unordered_map>
 #include <type_traits>
 
+#ifdef WITH_EIGEN
+#include <Eigen/Dense>
+#endif
+
 struct OSCMap;
 
 class OSCAtom
@@ -113,6 +117,33 @@ public:
             appendValue(*it);
         }
     }
+    
+
+#ifdef WITH_EIGEN
+    template <typename Derived>
+    void appendValue(const Eigen::ArrayBase<Derived> &val)
+    {
+        if( val.size() > 0 )
+        {
+           for( size_t i = 0; i < val.rows(); ++i)
+           {
+               appendValue( val(i) );
+           }
+        }
+    }
+    
+    template <typename Derived>
+    void appendValue(Eigen::ArrayBase<Derived> &val)
+    {
+        if( val.size() > 0 )
+        {
+           for( size_t i = 0; i < val.rows(); ++i)
+           {
+               appendValue( val(i) );
+           }
+        }
+    }
+#endif
     
     
     template <typename T>
