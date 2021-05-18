@@ -274,7 +274,7 @@ OSCMap::OSCMap( const OSCMap & other )
 {
     for( auto & it : other.address_lookup )
     {
-        address_lookup[it.first] = std::make_unique<OSCAtomVector>( *it.second );
+        address_lookup.emplace(it.first, OSCAtomVector( it.second ) );
     }
 }
 
@@ -309,8 +309,8 @@ void OSCMap::inputOSC( long len, char * ptr )
 
         size_t natoms = typetags.length() - 1;
 
-        unique_ptr<OSCAtomVector> newVec = make_unique<OSCAtomVector>();
-        newVec->reserve( natoms );
+        OSCAtomVector newVec;// = make_unique<OSCAtomVector>();
+        newVec.reserve( natoms );
 
         char * dataPtr = ptr + data_start;
 
@@ -323,31 +323,31 @@ void OSCMap::inputOSC( long len, char * ptr )
                 case 'f':
                 {
                     uint32_t i = ntoh32(*((uint32_t *)(dataPtr)));
-                    newVec->appendValue( *((float *)&i) );
+                    newVec.appendValue( *((float *)&i) );
                     bytes_to_next = 4;
                 }
                 break;
                 case 'd':
                 {
                     uint64_t i = ntoh64(*((uint64_t *)(dataPtr)));
-                    newVec->appendValue( *((double *)&i) );
+                    newVec.appendValue( *((double *)&i) );
                     bytes_to_next = 8;
                 }
                 break;
                 case 'i':
-                    newVec->appendValue( (int32_t)ntoh32(*((int32_t *)(dataPtr))) );
+                    newVec.appendValue( (int32_t)ntoh32(*((int32_t *)(dataPtr))) );
                     bytes_to_next = 4;
                     break;
                 case 's':
                     {
                         size_t str_end = buf.find_first_of('\0', data_start + bytes_to_next);
                         string str = buf.substr(data_start + bytes_to_next, str_end);
-                        newVec->appendValue( str );
+                        newVec.appendValue( str );
                         bytes_to_next = osc_util_getPaddedStringLen(str);
                     }
                     break;
                 case 'c':
-                    newVec->appendValue((char)ntoh32(*((int32_t *)(dataPtr))));
+                    newVec.appendValue((char)ntoh32(*((int32_t *)(dataPtr))));
                     bytes_to_next = 4;
                     break;
 //                    case 'C':
@@ -360,7 +360,7 @@ void OSCMap::inputOSC( long len, char * ptr )
 //                        osc_atom_u_setUInt16(atom_u, osc_atom_s_getUInt16(a));
 //                        break;
                 case 'h':
-                    newVec->appendValue( (int64_t)ntoh64(*((int64_t *)(dataPtr))) );
+                    newVec.appendValue( (int64_t)ntoh64(*((int64_t *)(dataPtr))) );
                     bytes_to_next = 8;
                     break;
 //                    case 'I':
@@ -370,16 +370,16 @@ void OSCMap::inputOSC( long len, char * ptr )
 //                        osc_atom_u_setUInt64(atom_u, osc_atom_s_getUInt64(a));
 //                        break;
                 case 'T':
-                    newVec->appendValue( true );
+                    newVec.appendValue( true );
                     break;
                 case 'F':
-                    newVec->appendValue( false );
+                    newVec.appendValue( false );
                     break;
                 case 'N':
-                    newVec->appendValue( false );
+                    newVec.appendValue( false );
                     break;
                 case OSC_BUNDLE_TYPETAG:
-                    newVec->appendValue( OSCMap( (long)ntoh32(*((int32_t *)(dataPtr))),
+                    newVec.appendValue( OSCMap( (long)ntoh32(*((int32_t *)(dataPtr))),
                                                  dataPtr + 4 ));
                     break;
 //                    case OSC_TIMETAG_TYPETAG:
@@ -414,9 +414,9 @@ size_t OSCMap::getSerializedSizeInBytes() const
     {
         _n += 4;
         _n += osc_util_getPaddedStringLen( (char *)it.first.c_str() );
-        _n += osc_util_getPaddingForNBytes( it.second->size() + 1 );
+        _n += osc_util_getPaddingForNBytes( it.second.size() + 1 );
         
-        for( auto& at : it.second->getAtomVector() )
+        for( auto& at : it.second.getAtomVector() )
         {
             _n += at->getSizeInBytes();
         }
@@ -428,7 +428,7 @@ size_t OSCMap::getSerializedSizeInBytes() const
 
 
 
-size_t serializeVector( char *buf, size_t remaining_size, const char * address, vector< unique_ptr<OSCAtom> >& vec )
+size_t serializeVector( char *buf, size_t remaining_size, const char * address, const vector< unique_ptr<OSCAtom> >& vec )
 {
     size_t _n = 0;
     size_t addresslen = strlen(address);
@@ -557,7 +557,7 @@ void OSCMap::serializeIntoBuffer(char *ptr, size_t size ) const
         _n += serializeVector(  ptr + _n,
                                 size - _n,
                                 it.first.c_str(), //address
-                                it.second->getAtomVector() //vec
+                                it.second.getAtomVector() //vec
                               );
     }
     
@@ -609,7 +609,7 @@ void OSCMap::print(int tabs) const
             printf("\t");
             
         printf("%s :\t", it.first.c_str() );
-        it.second->print(tabs);
+        it.second.print(tabs);
     }
   
     printf("\n");

@@ -25,7 +25,7 @@ int main(int argc, const char * argv[]) {
     // appending values to make a list
     for( int i = 0; i < 10; i++ )
     {
-        bndl2["/accumuate"]->appendValue(i); // note that the messages are pointers
+        bndl2["/accumuate"].appendValue(i); // note that the messages are pointers
     }
     
     // adding a subbbundle
@@ -36,11 +36,11 @@ int main(int argc, const char * argv[]) {
     
     
     // the get function gets an OSC atom and casts to the requested type
-    cout << "this is a float " << bndl["/float"]->get<float>() << endl;
+    cout << "this is a float " << bndl["/float"].get<float>() << endl;
     
     cout << "the type tages of bar are:";
     
-    vector<char> typetags = bndl["/bar"]->typetags();
+    vector<char> typetags = bndl["/bar"].typetags();
     
     for( auto& it : typetags )
         cout << "\t" << it;
@@ -49,12 +49,12 @@ int main(int argc, const char * argv[]) {
 
     
     // by default get<>() returns the first element
-    cout << "this is the first element of /bar " << bndl["/bar"]->get<string>() << endl;
+    cout << "this is the first element of /bar " << bndl["/bar"].get<string>() << endl;
     
-    cout << "the length of /bar is : " << bndl["/bar"]->size() << endl;
+    cout << "the length of /bar is : " << bndl["/bar"].size() << endl;
 
     // optional argument to get() is the list index (note, it doesn't check if it's valid or not)
-    cout << "this is the second element /bar " << bndl["/bar"]->get<string>(1) << endl;
+    cout << "this is the second element /bar " << bndl["/bar"].get<string>(1) << endl;
     
     // this will crash since we ask for an element that is outside the list size
     // cout << "this is the second element /float " << bndl["/float"]->get<string>(1) << endl;
