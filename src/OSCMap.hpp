@@ -19,7 +19,7 @@ public:
     OSCAtom(float val )         : type('f'), f_val(val) {}
     OSCAtom(double val )        : type('d'), d_val(val) {}
     OSCAtom(int32_t val )       : type('i'), i_val(val) {}
-    OSCAtom(int64_t val )       : type('l'), l_val(val) {}
+    OSCAtom(int64_t val )       : type('h'), l_val(val) {}
     OSCAtom(char val )          : type('c'), c_val(val) {}
     OSCAtom(bool val )          : type('b'), b_val(val) {}
     OSCAtom(const std::string val )  : type('s'), str_val(val) {}
@@ -185,10 +185,11 @@ public:
     OSCMap(){}
     OSCMap( const OSCMap & other );
     OSCMap( long len, char * ptr ) { inputOSC(len, ptr); }
+    /*
     OSCMap (std::unordered_map<std::string, OSCAtomVector > ){
         printf("test");
     }
-    
+    */
     void inputOSC( long len, char * ptr );
 
     inline void addMessage(const char* address)

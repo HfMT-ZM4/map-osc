@@ -133,7 +133,7 @@ OSCAtom::OSCAtom(const OSCAtom & other) : type(other.type)
        case 'i':
            i_val = other.i_val;
            break;
-       case 'l':
+       case 'h':
            l_val = other.l_val;
            break;
        case 'c':
@@ -171,7 +171,7 @@ T OSCAtom::get()
                 return std::to_string(d_val);
             case 'i':
                 return std::to_string(i_val);
-            case 'l':
+            case 'h':
                 return std::to_string(l_val);
             case 'c':
                 return std::to_string(c_val);
@@ -200,7 +200,7 @@ T OSCAtom::get()
                 return (T)d_val;
             case 'i':
                 return (T)i_val;
-            case 'l':
+            case 'h':
                 return (T)l_val;
             case 'c':
                 return (T)c_val;
@@ -298,11 +298,8 @@ void OSCMap::inputOSC( long len, char * ptr )
        // cout << "addr " << addr << " start " << addr_start << " end " << addr_end <<endl;
 
         size_t typetags_start = addr_start + osc_util_getPaddedStringLen(addr);
-        size_t typetags_end = buf.find_first_of('\0', typetags_start);
-        string typetags = buf.substr(typetags_start, typetags_end-typetags_start);
-
-        //cout << "typetags " << typetags << endl;
-
+        size_t typetags_end = buf.find_first_of('\0', typetags_start) - 1;
+        string typetags = buf.substr(typetags_start+1, typetags_end-typetags_start);
 
         size_t data_start = typetags_start + osc_util_getPaddedStringLen(typetags);
         size_t bytes_to_next = 0;
@@ -335,13 +332,20 @@ void OSCMap::inputOSC( long len, char * ptr )
                 }
                 break;
                 case 'i':
+                {
                     newVec.appendValue( (int32_t)ntoh32(*((int32_t *)(dataPtr))) );
                     bytes_to_next = 4;
-                    break;
+                }
+                break;
+                case 'h':
+                    newVec.appendValue( (int64_t)ntoh64(*((int64_t *)(dataPtr))) );
+                    bytes_to_next = 8;
+                break;
                 case 's':
                     {
-                        size_t str_end = buf.find_first_of('\0', data_start + bytes_to_next);
-                        string str = buf.substr(data_start + bytes_to_next, str_end);
+                        size_t str_start = dataPtr - ptr;
+                        size_t str_end = buf.find_first_of('\0', str_start);
+                        string str = buf.substr(str_start, str_end - str_start);
                         newVec.appendValue( str );
                         bytes_to_next = osc_util_getPaddedStringLen(str);
                     }
@@ -359,10 +363,7 @@ void OSCMap::inputOSC( long len, char * ptr )
 //                    case 'U':
 //                        osc_atom_u_setUInt16(atom_u, osc_atom_s_getUInt16(a));
 //                        break;
-                case 'h':
-                    newVec.appendValue( (int64_t)ntoh64(*((int64_t *)(dataPtr))) );
-                    bytes_to_next = 8;
-                    break;
+
 //                    case 'I':
 //                        osc_atom_u_setUInt32(atom_u, osc_atom_s_getUInt32(a));
 //                        break;
@@ -393,6 +394,7 @@ void OSCMap::inputOSC( long len, char * ptr )
 //                    case OSC_BUNDLE_TYPETAG:
 //                        return getBundle() == src.getBundle();
                 default:
+                    printf("unhandled input %ld type %c %d\n", i, typetags[i], typetags[i] );
                 break;
 
             }

@@ -17,7 +17,11 @@ int main(int argc, const char * argv[]) {
     bndl.addMessage("/string", "hello osc!");
     
     // adding a message with a list
-    bndl.addMessage("/bar", "hei", 2, (double)3, (int64_t)4 );
+    bndl.addMessage("/bar", (int32_t)20, (int32_t)9, (double)3, "hei",  (int32_t)4 );
+    
+    // adding a vector
+    vector<float> fl_list = {1.1, 2.2, 3.3, 4.4};
+    //bndl.addMessage("/vec", 1.1, 2.2, 3.3, 4.4);
     
     // creating an empty message
     bndl2.addMessage("/accumuate");
@@ -29,7 +33,7 @@ int main(int argc, const char * argv[]) {
     }
     
     // adding a subbbundle
-    bndl.addMessage("/sub", bndl2);
+   // bndl.addMessage("/sub", bndl2);
     
     // print
     bndl.print();
@@ -63,13 +67,13 @@ int main(int argc, const char * argv[]) {
     // example of writing into a std::string
     string serialString = bndl.getSerializedString();
     
-    // test printing the bytes
     /*
+    // test printing the bytes
     for( int i = 0; i < serialString.size(); i++ )
     {
-       printf("%d 0x%x %d\n", i, (unsigned char)serialString[i], (unsigned char)serialString[i]);
+       printf("%d %c 0x%x %d\n", i, serialString[i], (unsigned char)serialString[i], (unsigned char)serialString[i]);
     }
-    */
+     */
     
     // example of reading an OSC encoded char array
     OSCMap deserialized( serialString.length(), serialString.data() );
