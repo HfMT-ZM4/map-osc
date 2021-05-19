@@ -96,8 +96,7 @@ public:
     inline void appendValue(const char * val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
     inline void appendValue(const std::string& val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
     inline void appendValue(bool val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
-    inline void appendValue(const OSCMap & val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
-
+    void appendValue(const OSCMap & val );
     
     template <typename Derived>
     void appendValue(std::vector<Derived> &val)
@@ -184,7 +183,10 @@ public:
     
     OSCMap(){}
     OSCMap( const OSCMap & other );
-    OSCMap( long len, char * ptr ) { inputOSC(len, ptr); }
+    OSCMap( long len, char * ptr ) {
+        printf("init object with size %ld\n", len);
+        inputOSC(len, ptr);
+    }
     /*
     OSCMap (std::unordered_map<std::string, OSCAtomVector > ){
         printf("test");
@@ -195,7 +197,10 @@ public:
     inline void addMessage(const char* address)
     {
         if (!address_lookup.count(address))
+        {
             address_lookup.emplace(address, OSCAtomVector());
+            address_order.emplace_back(std::string(address));
+        }
     }
     
     template <typename... Ts>
@@ -203,9 +208,8 @@ public:
     {
         using expand = int[];
         
-        if( !address_lookup.count(address) )
-            address_lookup.emplace(address, OSCAtomVector());
-
+        addMessage(address);
+        
         (void)expand{0, ((void)address_lookup[address].appendValue( std::forward<Ts>(args) ), 0) ... };
     }
 
@@ -214,15 +218,15 @@ public:
     {
         using expand = int[];
         
-        if( !address_lookup.count(address) )
-            address_lookup.emplace(address, OSCAtomVector());
+        addMessage(address);
 
         (void)expand{0, ((void)address_lookup[address].appendValue( std::forward<Ts>(args) ), 0) ... };
     }
 
     OSCAtomVector& operator[](std::string& addr) { return address_lookup[addr]; }
     OSCAtomVector& operator[](const char * addr) { return address_lookup[addr]; }
-    
+    OSCAtomVector& operator[](char * addr) { return address_lookup[addr]; }
+
     inline bool addressExists(const char * address) {
         return address_lookup.count(address);
     }
@@ -231,7 +235,7 @@ public:
        return address_lookup[address];
     }
     
-    std::string getSerializedString() const;
+    std::string getSerializedString();
 
     size_t getSerializedSizeInBytes() const;
     void serializeIntoBuffer(char *ptr, size_t size ) const;
@@ -242,5 +246,5 @@ public:
 private:
     
     std::unordered_map<std::string, OSCAtomVector > address_lookup;
-    
+    std::vector<std::string> address_order;
 };

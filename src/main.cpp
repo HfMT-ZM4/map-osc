@@ -33,7 +33,7 @@ int main(int argc, const char * argv[]) {
     }
     
     // adding a subbbundle
-   // bndl.addMessage("/sub", bndl2);
+    bndl.addMessage("/sub", bndl2);
     
     // print
     bndl.print();
@@ -67,13 +67,12 @@ int main(int argc, const char * argv[]) {
     // example of writing into a std::string
     string serialString = bndl.getSerializedString();
     
-    /*
     // test printing the bytes
     for( int i = 0; i < serialString.size(); i++ )
     {
        printf("%d %c 0x%x %d\n", i, serialString[i], (unsigned char)serialString[i], (unsigned char)serialString[i]);
     }
-     */
+
     
     // example of reading an OSC encoded char array
     OSCMap deserialized( serialString.length(), serialString.data() );

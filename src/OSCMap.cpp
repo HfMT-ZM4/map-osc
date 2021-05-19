@@ -263,7 +263,11 @@ OSCAtomVector::OSCAtomVector( const OSCAtomVector & other )
     }
 }
 
-
+void OSCAtomVector::appendValue(const OSCMap & val ) {
+    printf("appending: \n");
+    val.print();
+    obj_vec.emplace_back(std::make_unique<OSCAtom>(val));
+}
 
 
 /**
@@ -277,6 +281,8 @@ OSCMap::OSCMap( const OSCMap & other )
         address_lookup.emplace(it.first, OSCAtomVector( it.second ) );
     }
 }
+
+
 
 
 void OSCMap::inputOSC( long len, char * ptr )
@@ -380,8 +386,10 @@ void OSCMap::inputOSC( long len, char * ptr )
                     newVec.appendValue( false );
                     break;
                 case OSC_BUNDLE_TYPETAG:
-                    newVec.appendValue( OSCMap( (long)ntoh32(*((int32_t *)(dataPtr))),
-                                                 dataPtr + 4 ));
+                {
+                    OSCMap map_( (long)ntoh32(*((int32_t *)(dataPtr))), dataPtr + 4 );
+                    newVec.appendValue( map_ );
+                }
                     break;
 //                    case OSC_TIMETAG_TYPETAG:
 //                        {
@@ -400,6 +408,7 @@ void OSCMap::inputOSC( long len, char * ptr )
             }
         }
 
+        address_order.emplace_back(addr);
         address_lookup.emplace( addr, move(newVec) );
 
         _n += msg_size + 4;
@@ -548,18 +557,22 @@ size_t serializeVector( char *buf, size_t remaining_size, const char * address, 
 
 void OSCMap::serializeIntoBuffer(char *ptr, size_t size ) const
 {
+    
+    printf("serializeIntoBuffer size %ld addr order size %ld\n", size, address_order.size() );
+    
     size_t _n = 0;
     
     memset(ptr, '\0', size);
     memcpy(ptr, OSC_EMPTY_HEADER, OSC_HEADER_SIZE);
     _n += OSC_HEADER_SIZE;
     
-    for (auto& it : address_lookup )
+    for (const string& addr : address_order )
     {
+        const OSCAtomVector& vec = address_lookup.at(addr);
         _n += serializeVector(  ptr + _n,
                                 size - _n,
-                                it.first.c_str(), //address
-                                it.second.getAtomVector() //vec
+                                addr.c_str(), //address
+                                vec.getAtomVector() //vec
                               );
     }
     
@@ -567,7 +580,7 @@ void OSCMap::serializeIntoBuffer(char *ptr, size_t size ) const
    
 }
 
-std::string OSCMap::getSerializedString() const
+std::string OSCMap::getSerializedString()
 {
     size_t len = getSerializedSizeInBytes();
     
