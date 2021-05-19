@@ -96,7 +96,7 @@ public:
     inline void appendValue(const char * val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
     inline void appendValue(const std::string& val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
     inline void appendValue(bool val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
-    void appendValue(const OSCMap & val );
+    inline void appendValue(const OSCMap & val ) { obj_vec.emplace_back(std::make_unique<OSCAtom>(val)); }
     
     template <typename Derived>
     void appendValue(std::vector<Derived> &val)

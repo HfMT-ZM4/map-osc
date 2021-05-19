@@ -263,12 +263,6 @@ OSCAtomVector::OSCAtomVector( const OSCAtomVector & other )
     }
 }
 
-void OSCAtomVector::appendValue(const OSCMap & val ) {
-    printf("appending: \n");
-    val.print();
-    obj_vec.emplace_back(std::make_unique<OSCAtom>(val));
-}
-
 
 /**
  OSCMap
@@ -276,9 +270,10 @@ void OSCAtomVector::appendValue(const OSCMap & val ) {
 
 OSCMap::OSCMap( const OSCMap & other )
 {
-    for( auto & it : other.address_lookup )
+    for( const auto & addr : other.address_order )
     {
-        address_lookup.emplace(it.first, OSCAtomVector( it.second ) );
+        address_order.emplace_back(addr);
+        address_lookup.emplace(addr, OSCAtomVector( other.address_lookup.at(addr) ) );
     }
 }
 
@@ -386,10 +381,7 @@ void OSCMap::inputOSC( long len, char * ptr )
                     newVec.appendValue( false );
                     break;
                 case OSC_BUNDLE_TYPETAG:
-                {
-                    OSCMap map_( (long)ntoh32(*((int32_t *)(dataPtr))), dataPtr + 4 );
-                    newVec.appendValue( map_ );
-                }
+                    newVec.appendValue( OSCMap( (long)ntoh32(*((int32_t *)(dataPtr))), dataPtr + 4 ) );
                     break;
 //                    case OSC_TIMETAG_TYPETAG:
 //                        {
@@ -557,9 +549,7 @@ size_t serializeVector( char *buf, size_t remaining_size, const char * address, 
 
 void OSCMap::serializeIntoBuffer(char *ptr, size_t size ) const
 {
-    
-    printf("serializeIntoBuffer size %ld addr order size %ld\n", size, address_order.size() );
-    
+        
     size_t _n = 0;
     
     memset(ptr, '\0', size);
@@ -618,13 +608,13 @@ void OSCAtomVector::print(int tabs) const
 
 void OSCMap::print(int tabs) const
 {
-    for( auto & it : address_lookup )
+    for( const auto & addr : address_order )
     {
         for( int i = 0; i < tabs; i++ )
             printf("\t");
             
-        printf("%s :\t", it.first.c_str() );
-        it.second.print(tabs);
+        printf("%s :\t", addr.c_str() );
+        address_lookup.at(addr).print(tabs);
     }
   
     printf("\n");
